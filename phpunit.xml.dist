@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        syntaxCheck="true"
+        stopOnError="false"
+        stopOnFailure="false"
+        stopOnIncomplete="false"
+        stopOnSkipped="false"
+        verbose="true">
+
+    <testsuites>
+        <testsuite name="Config Test Suite">
+            <directory>./tests/units/</directory>
+        </testsuite>
+    </testsuites>
+
+
+</phpunit>

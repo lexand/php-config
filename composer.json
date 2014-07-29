@@ -1,0 +1,44 @@
+{
+    "name": "config/ini",
+    "description": "Load/reload INI files. With validation. Support default values",
+    "license": "MIT",
+    "keywords": [
+        "ini",
+        "parsing",
+        "validating"
+    ],
+    "homepage": "https://github.com/lexand/php-config",
+    "authors": [
+        {
+            "name": "Alexandr Dorogikh",
+            "email": "dorogikh.alexander@gmail.com",
+            "homepage" : "https://github.com/lexand/"
+        },
+        {
+            "name": "Dmitry Teslitsky",
+            "homepage": "https://github.com/teslitsky"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/lexand/php-reflection-invoker.git"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "config\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~3.7",
+        "reflection/invoker": "dev-master"
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
+
