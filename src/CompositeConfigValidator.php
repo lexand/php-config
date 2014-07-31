@@ -20,6 +20,9 @@ use config\exceptions\ConfigValidationException;
  */
 class CompositeConfigValidator implements ConfigValidatorInterface
 {
+    /**
+     * @var array
+     */
     private $rules;
 
     /**
@@ -27,7 +30,7 @@ class CompositeConfigValidator implements ConfigValidatorInterface
      */
     private $validators = [];
 
-    public function  __construct($rules)
+    public function  __construct(array $rules)
     {
         $this->rules = $rules;
     }

@@ -34,7 +34,7 @@ class ConfigLoader implements \ArrayAccess
      * @param array                         $defaults Default values
      * @param ConfigValidatorInterface|null $validator Config validators
      */
-    public function __construct($filename, $defaults = [], ConfigValidatorInterface $validator = null)
+    public function __construct($filename, array $defaults = [], ConfigValidatorInterface $validator = null)
     {
         $this->filename = $filename;
         $this->defaults = $defaults;

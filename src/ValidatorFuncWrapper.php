@@ -1,12 +1,11 @@
 <?php
+namespace config;
+
 /**
  * @author alex
  * @date 25.07.14
  * @time 21:42
  */
-
-namespace config;
-
 class ValidatorFuncWrapper implements ConfigValidatorInterface
 {
 
