@@ -62,7 +62,7 @@ class ConfigLoader implements \ArrayAccess
         $configs = $this->parseConfig();
         if ($configs)
         {
-            $configs = array_merge_recursive($this->defaults, $configs);
+            $configs = array_replace_recursive($this->defaults, $configs);
             if (is_object($this->validator))
             {
                 $this->validator->validate($configs);

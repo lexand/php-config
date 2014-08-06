@@ -148,4 +148,19 @@ class ConfigLoaderTest extends \PHPUnit_Framework_TestCase
 
         unset($mock['dbClassImpl']);
     }
+
+    /**
+     * cover possible bug with array_merge_recursive
+     */
+    public function testDefaultsApplying()
+    {
+        $cfg = new ConfigLoader(realpath(__DIR__ . '/../config/database-config.ini'), $this->config);
+        $ro = new \ReflectionObject($cfg);
+        $prop = $ro->getProperty('configs');
+        $prop->setAccessible(true);
+        $value = $prop->getValue($cfg);
+
+        $this->assertTrue(is_scalar($value['dbClassImpl']));
+    }
+
 }
