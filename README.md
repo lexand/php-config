@@ -12,16 +12,17 @@ Example
 <?php
 
 $defaults = [
-   'dbHost' => '127.0.0.1',
    'server' => [
+       'dbHost' => '127.0.0.1',
        'idleTimeout' => 10
    ]
 ];
 
 $rules = [
-   'dbHost' => 'IPv4', // param without section
    'server' => [       // points to section 'server'
+       'dbHost' => 'IPv4', // param without section
        'idleTimeout' => 'int' // param in section 'server'
+       'logDir' => ['directory', 'baseDir' => __DIR__, 'checkWritable' => true]
    ]
 ];
 

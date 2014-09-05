@@ -15,8 +15,8 @@ use config\exceptions\ConfigValidationException;
  * <li>socketPort</li>
  * <li>text</li>
  * <li>int</li>
- * <li>directory, support additional params ['baseDir' => '<base dir for relative path>']</li>
- * <li>file, support additional params ['baseDir' => '<base dir for relative path>']</li>
+ * <li>directory, support additional params ['baseDir' => 'base dir for relative path', 'checkWritable' => true/false]</li>
+ * <li>file, support additional params ['baseDir' => 'base dir for relative path', 'checkWritable' => true/false]</li>
  * </ul>
  *
  * @package config
@@ -116,7 +116,8 @@ class CompositeConfigValidator implements ConfigValidatorInterface
         {
             if (!$this->validators[$valName]->validate($value, $valParam))
             {
-                throw new ConfigValidationException("Configs validation error in {$validator} Validator with [{$path}]='{$value}' value");
+                $p = (empty($valParam)) ? '[]' : print_r($valParam, true);
+                throw new ConfigValidationException("Configs validation error in {$validator} Validator with [{$path}]='{$value}' value. Params: {$p}.");
             };
             return;
         }
@@ -126,7 +127,8 @@ class CompositeConfigValidator implements ConfigValidatorInterface
         {
             if (!call_user_func_array([$this, $method], [$value, $valParam]))
             {
-                throw new ConfigValidationException("Configs validation error in {$valName} Validator with [{$path}]='{$value}' value");
+                $p = (empty($valParam)) ? '[]' : print_r($valParam, true);
+                throw new ConfigValidationException("Configs validation error in {$valName} Validator with [{$path}]='{$value}' value. Params: {$p}.");
             }
             return;
         }
@@ -194,7 +196,7 @@ class CompositeConfigValidator implements ConfigValidatorInterface
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param       $value
-     * @param array $params <p>baseDir => <baseDir for relative path></p>
+     * @param array $params <p>baseDir => &lt;baseDir for relative path&gt;</p>
      * @return bool
      */
     private function directoryValidator($value, array $params = null)
@@ -207,13 +209,16 @@ class CompositeConfigValidator implements ConfigValidatorInterface
         {
             $path = realpath(rtrim($params['baseDir'], '/') . DIRECTORY_SEPARATOR . $value);
         }
-        return ($path !== false) && file_exists($path) && is_dir($path);
+        return ($path !== false) && file_exists($path) && is_dir($path) &&
+               (isset($params['checkWritable']) && $params['checkWritable'] && is_writable($path));
     }
 
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param       $value
-     * @param array $params <p>baseDir => <baseDir for relative path></p>
+     * @param array $params <p>
+     * baseDir => &lt;baseDir for relative path&gt;
+     * </p>
      * @return bool
      */
     private function fileValidator($value, array $params = null)
@@ -226,7 +231,8 @@ class CompositeConfigValidator implements ConfigValidatorInterface
         {
             $path = realpath(rtrim($params['baseDir'], '/') . DIRECTORY_SEPARATOR . $value);
         }
-        return ($path !== false) && file_exists($path) && is_file($path);
+        return ($path !== false) && file_exists($path) && is_dir($path) &&
+               (isset($params['checkWritable']) && $params['checkWritable'] && is_writable($path));
     }
 
     private function validatorResolve($validator)
