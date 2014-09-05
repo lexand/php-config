@@ -6,23 +6,24 @@ use reflection\ReflectionInvoker;
 
 class ConfigLoaderTest extends \PHPUnit_Framework_TestCase
 {
-    private $config = [
-        'dbClassImpl' => '\microdb\PdoImpl',
-        'main'        => [
-            'dbHost' => '192.168.34.205',
-            'dbPort' => '3306',
-            'dbUser' => 'zh',
-            'dbPass' => '123456',
-            'dbName' => 'itsender_zh',
-        ],
-        'smpp'        => [
-            'dbHost' => '192.168.34.205',
-            'dbPort' => '3306',
-            'dbUser' => 'zh',
-            'dbPass' => '123456',
-            'dbName' => 'itsender_zh',
-        ],
-    ];
+    private $config
+        = [
+            'main' => [
+                'dbClassImpl' => '\microdb\PdoImpl',
+                'dbHost'      => '192.168.34.205',
+                'dbPort'      => '3306',
+                'dbUser'      => 'zh',
+                'dbPass'      => '123456',
+                'dbName'      => 'itsender_zh',
+            ],
+            'smpp' => [
+                'dbHost' => '192.168.34.205',
+                'dbPort' => '3306',
+                'dbUser' => 'zh',
+                'dbPass' => '123456',
+                'dbName' => 'itsender_zh',
+            ],
+        ];
 
     /**
      * @expectedException \config\exceptions\ConfigFileNotFoundException
@@ -81,22 +82,22 @@ class ConfigLoaderTest extends \PHPUnit_Framework_TestCase
         /** @var ConfigLoader $mock */
         $mock->reload();
 
-        $this->assertEquals('\microdb\PdoImpl', $mock['dbClassImpl']);
+        $this->assertEquals('\microdb\PdoImpl', $mock['main']['dbClassImpl']);
         $this->assertEquals('192.168.34.205', $mock['main']['dbHost']);
     }
 
     public function testConfigDefaultValue()
     {
         $defaults = [
-            'dbClassImpl' => 'foo',
             'main' => [
-                'dbName' => 'bar',
+                'dbClassImpl' => 'foo',
+                'dbName'      => 'bar',
             ]
         ];
 
         $config = new ConfigLoader(realpath(__DIR__ . '/../config/test-default.ini'), $defaults);
 
-        $this->assertEquals('foo', $config['dbClassImpl']);
+        $this->assertEquals('foo', $config['main']['dbClassImpl']);
         $this->assertEquals('bar', $config['main']['dbName']);
     }
 
@@ -127,7 +128,7 @@ class ConfigLoaderTest extends \PHPUnit_Framework_TestCase
         /** @var ConfigLoader $mock */
         $mock->reload();
 
-        $this->assertTrue(isset($mock['dbClassImpl']));
+        $this->assertTrue(isset($mock['main']['dbClassImpl']));
         $this->assertTrue(isset($mock['main']['dbHost']));
     }
 
@@ -160,7 +161,6 @@ class ConfigLoaderTest extends \PHPUnit_Framework_TestCase
         $prop->setAccessible(true);
         $value = $prop->getValue($cfg);
 
-        $this->assertTrue(is_scalar($value['dbClassImpl']));
+        $this->assertTrue(is_scalar($value['main']['dbClassImpl']));
     }
-
 }

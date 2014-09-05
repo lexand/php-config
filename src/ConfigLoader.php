@@ -9,6 +9,7 @@ use config\exceptions\ConfigParseException;
  * Load/parse/validate INI files
  * <p/>
  * Support default values.
+ * INI files must contain sections
  */
 class ConfigLoader implements \ArrayAccess
 {
@@ -17,7 +18,10 @@ class ConfigLoader implements \ArrayAccess
      */
     private $filename;
 
-    private $validator = false;
+    /**
+     * @var ConfigValidatorInterface|null
+     */
+    private $validator = null;
 
     /**
      * @var array
@@ -34,7 +38,7 @@ class ConfigLoader implements \ArrayAccess
      * @param array                         $defaults Default values
      * @param ConfigValidatorInterface|null $validator Config validators
      */
-    public function __construct($filename, array $defaults = [], ConfigValidatorInterface $validator = null)
+    public function __construct($filename, $defaults = [], $validator = null)
     {
         $this->filename = $filename;
         $this->defaults = $defaults;
@@ -43,10 +47,6 @@ class ConfigLoader implements \ArrayAccess
     }
 
     /**
-     * Reload INI file and do validation again.
-     * <p/>
-     * If new configs pass validation, it will be applied to current instance, otherwise configs leaved unchanged.
-     *
      * @throws ConfigFileNotFoundException
      * @throws ConfigParseException
      * @return void
@@ -133,12 +133,12 @@ class ConfigLoader implements \ArrayAccess
      * @param mixed $value <p>
      * The value to set.
      * </p>
-     * @return void
      * @throws \LogicException
+     * @return void
      */
     public function offsetSet($offset, $value)
     {
-        throw new \LogicException('Config is read-only');
+        throw new \LogicException('Could not override config');
     }
 
     /**
@@ -148,11 +148,11 @@ class ConfigLoader implements \ArrayAccess
      * @param mixed $offset <p>
      * The offset to unset.
      * </p>
-     * @return void
      * @throws \LogicException
+     * @return void
      */
     public function offsetUnset($offset)
     {
-        throw new \LogicException('Config is read-only');
+        throw new \LogicException('Could not override config');
     }
 }

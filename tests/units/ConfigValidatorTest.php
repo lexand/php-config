@@ -2,7 +2,7 @@
 
 namespace config;
 
-class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
+class CompositeConfigValidatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \config\exceptions\ConfigValidationException
@@ -27,7 +27,7 @@ class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \config\exceptions\ConfigValidationException
-     * @expectedExceptionMessage Configs validation error. Key [dbClassImpl] not found
+     * @expectedExceptionMessage Configs validation error. Key [main.dbClassImpl] not found
      */
     public function testConfigValidationExceptionKey()
     {
@@ -38,9 +38,9 @@ class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
         ];
 
         $rules = [
-            'dbClassImpl' => 'classExists',
-            'main'        => [
-                'dbHost' => 'IPv4'
+            'main' => [
+                'dbClassImpl' => 'classExists',
+                'dbHost'      => 'IPv4'
             ],
         ];
 
@@ -51,15 +51,15 @@ class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
     public function testValidation()
     {
         $configs = [
-            'dbClassImpl' => '\microdb\PdoImpl',
-            'main'        => [
-                'dbHost' => '127.0.0.1',
-                'dbPort' => '3306',
-                'dbUser' => 'itsender_zh',
-                'dbPass' => '123456',
-                'dbName' => 'zh',
+            'main' => [
+                'dbClassImpl' => '\microdb\PdoImpl',
+                'dbHost'      => '127.0.0.1',
+                'dbPort'      => '3306',
+                'dbUser'      => 'itsender_zh',
+                'dbPass'      => '123456',
+                'dbName'      => 'zh',
             ],
-            'smpp'        => [
+            'smpp' => [
                 'dbHost' => '127.0.0.1',
                 'dbPort' => '3306',
                 'dbUser' => 'itsender_zh',
@@ -69,14 +69,14 @@ class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
         ];
 
         $rules = [
-            'main'        => [
+            'main' => [
                 'dbHost' => 'IPv4',
                 'dbPort' => 'socketPort',
                 'dbUser' => 'text',
                 'dbPass' => 'text',
                 'dbName' => 'text',
             ],
-            'smpp'        => [
+            'smpp' => [
                 'dbHost' => 'IPv4',
                 'dbPort' => 'socketPort',
                 'dbUser' => 'text',
@@ -88,4 +88,25 @@ class ConfigValidatorTest extends \PHPUnit_Framework_TestCase
         $validator = new CompositeConfigValidator($rules);
         $this->assertTrue($validator->validate($configs));
     }
+
+    public function testDirectoryValidator()
+    {
+        $configs = [
+            'general' => [
+                'logDir' => 'config'
+            ]
+        ];
+
+        $rules = [
+            'general' => [
+                'logDir' => ['directory', 'baseDir' => __DIR__ . '/..']
+            ]
+        ];
+
+        $validator = new CompositeConfigValidator($rules);
+        $this->assertTrue($validator->validate($configs));
+
+    }
+
+
 }

@@ -7,13 +7,16 @@ use config\exceptions\ConfigValidationException;
 /**
  * Class CompositeConfigValidator
  * <p/>
- *
+ * ini-files Must have sections.
  * Builtin validators:
  * <ul>
- *   <li>classExists</li>
- *   <li>IPv4</li>
- *   <li>socketPort</li>
- *   <li>text</li>
+ * <li>classExists</li>
+ * <li>IPv4</li>
+ * <li>socketPort</li>
+ * <li>text</li>
+ * <li>int</li>
+ * <li>directory, support additional params ['baseDir' => '<base dir for relative path>']</li>
+ * <li>file, support additional params ['baseDir' => '<base dir for relative path>']</li>
  * </ul>
  *
  * @package config
@@ -76,76 +79,69 @@ class CompositeConfigValidator implements ConfigValidatorInterface
      * Validating config
      *
      * @param array $configs Validate whole config
+     * @param array $params Additional params
+     * @throws exceptions\ConfigValidationException
      * @return bool
-     * @throws ConfigValidationException
      */
-    public function validate($configs)
+    public function validate($configs, array $params = null)
     {
-        foreach ($this->rules as $section => $params)
+        foreach ($this->rules as $section => $sectionRules)
         {
-            if (is_array($params))
+            foreach ($sectionRules as $paramName => $validator)
             {
-                foreach ($params as $paramName => $validator)
+                if (!isset($configs[$section][$paramName]))
                 {
-                    if (!isset($configs[$section][$paramName]))
-                    {
-                        throw new ConfigValidationException("Configs validation error. Key [{$section}.{$paramName}] not found");
-                    }
-
-                    $paramValue = $configs[$section][$paramName];
-                    $this->validateInternal($validator, $paramValue, "{$section}.{$paramName}");
+                    throw new ConfigValidationException("Configs validation error. Key [{$section}.{$paramName}] not found");
                 }
 
-                continue;
+                $paramValue = $configs[$section][$paramName];
+                $this->validateInternal($validator, $paramValue, "{$section}.{$paramName}");
             }
-
-
-            if (!isset($configs[$section]))
-            {
-                throw new ConfigValidationException("Configs validation error. Key [$section] not found");
-            }
-            $this->validateInternal($params, $configs[$section], "{$section}");
+            continue;
         }
-
         return true;
     }
 
     /**
-     * @param string $validatorName
-     * @param mixed $value
-     * @param string $path
+     * @param string|array $validator
+     * @param mixed        $value
+     * @param string       $path
      * @throws exceptions\ConfigValidationException
      */
-    private function validateInternal($validatorName, $value, $path)
+    private function validateInternal($validator, $value, $path)
     {
-        if (isset($this->validators[$validatorName]))
+        list($valName, $valParam) = $this->validatorResolve($validator);
+
+        if (isset($this->validators[$valName]))
         {
-            if (!$this->validators[$validatorName]->validate($value))
+            if (!$this->validators[$valName]->validate($value, $valParam))
             {
-                throw new ConfigValidationException("Configs validation error in {$validatorName} Validator with [{$path}]='{$value}' value");
+                throw new ConfigValidationException("Configs validation error in {$validator} Validator with [{$path}]='{$value}' value");
             };
             return;
         }
 
-        $method = $validatorName . 'Validator';
+        $method = $valName . 'Validator';
         if (method_exists($this, $method))
         {
-            if (!call_user_func_array([$this, $method], [$value]))
+            if (!call_user_func_array([$this, $method], [$value, $valParam]))
             {
-                throw new ConfigValidationException("Configs validation error in {$validatorName} Validator with [{$path}]='{$value}' value");
+                throw new ConfigValidationException("Configs validation error in {$valName} Validator with [{$path}]='{$value}' value");
             }
             return;
         }
 
-        throw new ConfigValidationException("Unknown validator {$validatorName}");
+        throw new ConfigValidationException("Unknown validator {$valName}");
     }
+
 
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param string $value
+     * @param array  $params
      * @return bool
      */
-    private function classExistValidator($value)
+    private function classExistValidator($value, array $params = null)
     {
         return class_exists($value);
     }
@@ -153,9 +149,10 @@ class CompositeConfigValidator implements ConfigValidatorInterface
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param string $value
+     * @param array  $params
      * @return bool
      */
-    private function IPv4Validator($value)
+    private function IPv4Validator($value, array $params = null)
     {
         return filter_var($value, \FILTER_VALIDATE_IP) !== false;
     }
@@ -163,9 +160,10 @@ class CompositeConfigValidator implements ConfigValidatorInterface
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param string $value
+     * @param array  $params
      * @return bool
      */
-    private function socketPortValidator($value)
+    private function socketPortValidator($value, array $params = null)
     {
         // Max port number by http://tools.ietf.org/html/rfc6346
         return filter_var($value, \FILTER_VALIDATE_INT, ['options' => ['max_range' => 65535]]) !== false;
@@ -174,9 +172,10 @@ class CompositeConfigValidator implements ConfigValidatorInterface
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param string $value
-     * @return int
+     * @param array  $params
+     * @return bool
      */
-    private function textValidator($value)
+    private function textValidator($value, array $params = null)
     {
         return strlen($value);
     }
@@ -184,10 +183,66 @@ class CompositeConfigValidator implements ConfigValidatorInterface
     /** @noinspection PhpUnusedPrivateMethodInspection */
     /**
      * @param string $value
+     * @param array  $params
      * @return bool
      */
-    private function intValidator($value)
+    private function intValidator($value, array $params = null)
     {
         return filter_var($value, \FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]) !== false;
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * @param       $value
+     * @param array $params <p>baseDir => <baseDir for relative path></p>
+     * @return bool
+     */
+    private function directoryValidator($value, array $params = null)
+    {
+        if (strpos($value, '/') === 0)
+        {
+            $path = $value;
+        }
+        else
+        {
+            $path = realpath(rtrim($params['baseDir'], '/') . DIRECTORY_SEPARATOR . $value);
+        }
+        return ($path !== false) && file_exists($path) && is_dir($path);
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * @param       $value
+     * @param array $params <p>baseDir => <baseDir for relative path></p>
+     * @return bool
+     */
+    private function fileValidator($value, array $params = null)
+    {
+        if (strpos($value, '/') === 0)
+        {
+            $path = $value;
+        }
+        else
+        {
+            $path = realpath(rtrim($params['baseDir'], '/') . DIRECTORY_SEPARATOR . $value);
+        }
+        return ($path !== false) && file_exists($path) && is_file($path);
+    }
+
+    private function validatorResolve($validator)
+    {
+        if (is_string($validator))
+        {
+            return [$validator, null];
+        }
+        elseif (is_array($validator))
+        {
+            $vName = array_shift($validator);
+            return [$vName, $validator];
+        }
+        else
+        {
+            throw new \LogicException('Incorrect type of input value');
+        }
     }
 }

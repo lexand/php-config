@@ -5,10 +5,9 @@ namespace config;
 interface ConfigValidatorInterface
 {
     /**
-     * Validating value
-     *
      * @param mixed $value
+     * @param array $params
      * @return bool
      */
-    public function validate($value);
+    public function validate($value, array $params = null);
 }
