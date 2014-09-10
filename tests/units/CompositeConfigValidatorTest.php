@@ -105,8 +105,46 @@ class CompositeConfigValidatorTest extends \PHPUnit_Framework_TestCase
 
         $validator = new CompositeConfigValidator($rules);
         $this->assertTrue($validator->validate($configs));
-
     }
 
+    public function testClassConstantName()
+    {
+        $configs = [
+            'general' => [
+                'const' => 'SOME_CONST'
+            ]
+        ];
+        $rules = [
+            'general' => [
+                'const' => ['classConstant', 'class' => '\config\A', 'check' => 'name']
+            ]
+        ];
+        $validator = new CompositeConfigValidator($rules);
+        $this->assertTrue($validator->validate($configs));
+    }
 
+    /**
+     * @expectedException \config\exceptions\ConfigValidationException
+     */
+    public function testClassConstantAbsentName()
+    {
+        $configs = [
+            'general' => [
+                'const' => 'SOME_CONST1'
+            ]
+        ];
+        $rules = [
+            'general' => [
+                'const' => ['classConstant', 'class' => '\config\A', 'check' => 'name']
+            ]
+        ];
+        $validator = new CompositeConfigValidator($rules);
+        $validator->validate($configs);
+    }
+
+}
+
+class A
+{
+    const SOME_CONST = 1;
 }

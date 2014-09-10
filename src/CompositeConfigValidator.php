@@ -17,6 +17,7 @@ use config\exceptions\ConfigValidationException;
  * <li>int</li>
  * <li>directory, support additional params ['baseDir' => 'base dir for relative path', 'checkWritable' => true/false]</li>
  * <li>file, support additional params ['baseDir' => 'base dir for relative path', 'checkWritable' => true/false]</li>
+ * <li>classConstant, additional params ['class' => 'fully qualified class name']</li>
  * </ul>
  *
  * @package config
@@ -250,5 +251,16 @@ class CompositeConfigValidator implements ConfigValidatorInterface
         {
             throw new \LogicException('Incorrect type of input value');
         }
+    }
+
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * @param       $value
+     * @param array $params <p> ['class' => 'fully qualified class name'</p>
+     * @return boolean
+     */
+    private function classConstantValidator($value, array $params = null)
+    {
+        return array_key_exists($value, (new \ReflectionClass($params['class']))->getConstants());
     }
 }
